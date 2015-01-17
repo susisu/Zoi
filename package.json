@@ -21,6 +21,6 @@
   "homepage": "https://github.com/susisu/Zoi",
   "dependencies": {
     "commander": "^2.6.0",
-    "twitter": "^1.0.1"
+    "twitter": "^1.0.3"
   }
 }
