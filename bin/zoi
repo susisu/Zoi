@@ -1,0 +1,70 @@
+#!/usr/bin/env node
+
+/*
+ * Zoi
+ * copyright (c) 2015 Susisu
+ */
+
+var fs = require("fs");
+
+process.title = "zoi"
+
+var HOME = process.env.HOME + "/";
+var DEFAULT_CONFIG = {
+    "consumer": {
+        "key"   : "azsgLpxXji3HFGsnxc3JLBoA8",
+        "secret": "kuh2KYvctGYN3uuTitgLClQ4BkZzSDMBXDg30oJbPMBglJYtW4"
+    },
+    "access_token": {
+        "key"   : null,
+        "secret": null
+    },
+    "request_token": {
+        "key"   : null,
+        "secret": null
+    }
+};
+var CONFIG_FILE_NAME = ".zoiconfig";
+
+var config;
+if (!fs.existsSync(HOME + CONFIG_FILE_NAME)) {
+    fs.writeFileSync(HOME + CONFIG_FILE_NAME, JSON.stringify(DEFAULT_CONFIG));
+    config = DEFAULT_CONFIG;
+}
+else {
+    try {
+        config = JSON.parse(fs.readFileSync(HOME + CONFIG_FILE_NAME));
+    }
+    catch (error) {
+        process.stdout.write(HOME + CONFIG_FILE_NAME + " is broken!\nuse default\n");
+        fs.writeFileSync(HOME + CONFIG_FILE_NAME, JSON.stringify(DEFAULT_CONFIG));
+        config = DEFAULT_CONFIG;
+    }
+}
+
+var program = require("commander");
+
+program.version("0.0.1");
+
+program
+    .command("init")
+    .description("get request token")
+    .action(function (env, options) {
+
+    });
+
+program
+    .command("login <pin>")
+    .description("get access token")
+    .action(function (env, options) {
+
+    });
+
+program
+    .command("watch")
+    .description("watch timeline to respond to Zoi")
+    .action(function (env, options) {
+
+    });
+
+program.parse(process.argv);
