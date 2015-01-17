@@ -6,6 +6,10 @@
  */
 
 var fs = require("fs");
+var Twitter = require("twitter");
+
+var packageInfo = require("../package.json");
+
 
 process.title = "zoi"
 
@@ -42,29 +46,108 @@ else {
     }
 }
 
-var program = require("commander");
 
-program.version("0.0.1");
+var program = require("commander");
+var defaultMode = true;
+
+program.version(packageInfo.version, "-v, --version");
 
 program
     .command("init")
     .description("get request token")
-    .action(function (env, options) {
+    .action(function () {
+        defaultMode = false;
 
+        var client = new Twitter({
+            "consumer_key"       : config.consumer.key,
+            "consumer_secret"    : config.consumer.secret
+        });
+        client.oauth.getOAuthRequestToken(
+            { "oauth_callback": "oob" },
+            function (error, requestTokenKey, requestTokenSecret, results) {
+                if (error) {
+                    process.stdout.write(String(error) + "\n");
+                }
+                else {
+                    config.request_token.key = requestTokenKey;
+                    config.request_token.secret = requestTokenSecret;
+                    var url = client.options.authorize_url + "?oauth_token=" + requestTokenKey;
+                    fs.writeFileSync(HOME + CONFIG_FILE_NAME, JSON.stringify(config));
+                    process.stdout.write("Open: " + url + "\n"
+                        + "and allow Zoi access your account: zoi login <pin>\n");
+                }
+            }
+        );
     });
 
 program
     .command("login <pin>")
     .description("get access token")
-    .action(function (env, options) {
+    .action(function (pin) {
+        defaultMode = false;
 
+        var client = new Twitter({
+            "consumer_key"       : config.consumer.key,
+            "consumer_secret"    : config.consumer.secret
+        });
+        client.oauth.getOAuthAccessToken(
+            config.request_token.key,
+            config.request_token.secret,
+            pin,
+            function (error, accessTokenKey, accessTokenSecret, results) {
+                if (error) {
+                    process.stdout.write(String(error) + "\n");
+                }
+                else {
+                    config.access_token.key = accessTokenKey;
+                    config.access_token.secret = accessTokenSecret;
+                    fs.writeFileSync(HOME + CONFIG_FILE_NAME, JSON.stringify(config));
+                    process.stdout.write("You are now logged in!\nLet's try: zoi\n");
+                }
+            }
+        );
     });
 
 program
     .command("watch")
     .description("watch timeline to respond to Zoi")
     .action(function (env, options) {
+        defaultMode = false;
 
+        // if (!config.access_token.key || !config.access_token.secret) {
+        //     process.stdout.write("You are not logged in!\nTry: zoi init\n");
+        // }
+        // else {
+        //     var client = new Twitter({
+        //         "consumer_key"       : config.consumer.key,
+        //         "consumer_secret"    : config.consumer.secret,
+        //         "access_token_key"   : config.access_token.key,
+        //         "access_token_secret": config.access_token.secret
+        //     });
+        // }
     });
 
 program.parse(process.argv);
+
+if (defaultMode) {
+    if (!config.access_token.key || !config.access_token.secret) {
+        process.stdout.write("You are not logged in!\nTry: zoi init\n");
+    }
+    else {
+        var client = new Twitter({
+            "consumer_key"       : config.consumer.key,
+            "consumer_secret"    : config.consumer.secret,
+            "access_token_key"   : config.access_token.key,
+            "access_token_secret": config.access_token.secret
+        });
+        client.post(
+            "statuses/update",
+            { "status": "Zoi " + Math.random().toString() },
+            function (error, params, response) {
+                if (error) {
+                    process.stdout.write(String(error) + "\n");
+                }
+            }
+        );
+    }
+}
