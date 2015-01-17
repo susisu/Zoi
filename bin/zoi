@@ -26,7 +26,9 @@ var DEFAULT_CONFIG = {
     "request_token": {
         "key"   : null,
         "secret": null
-    }
+    },
+    "user_id": null,
+    "screen_name": null
 };
 var CONFIG_FILE_NAME = ".zoiconfig";
 
@@ -40,7 +42,7 @@ else {
         config = JSON.parse(fs.readFileSync(HOME + CONFIG_FILE_NAME));
     }
     catch (error) {
-        process.stdout.write(HOME + CONFIG_FILE_NAME + " is broken!\nuse default\n");
+        process.stdout.write(HOME + CONFIG_FILE_NAME + " is broken!\n");
         fs.writeFileSync(HOME + CONFIG_FILE_NAME, JSON.stringify(DEFAULT_CONFIG));
         config = DEFAULT_CONFIG;
     }
@@ -101,8 +103,11 @@ program
                 else {
                     config.access_token.key = accessTokenKey;
                     config.access_token.secret = accessTokenSecret;
+                    config.user_id = results.user_id;
+                    config.screen_name = results.screen_name;
                     fs.writeFileSync(HOME + CONFIG_FILE_NAME, JSON.stringify(config));
-                    process.stdout.write("You are now logged in!\nLet's try: zoi\n");
+                    process.stdout.write("You are now logged in as @" + config.screen_name
+                        + "!\nLet's try: zoi\n");
                 }
             }
         );
@@ -114,17 +119,29 @@ program
     .action(function (env, options) {
         defaultMode = false;
 
-        // if (!config.access_token.key || !config.access_token.secret) {
-        //     process.stdout.write("You are not logged in!\nTry: zoi init\n");
-        // }
-        // else {
-        //     var client = new Twitter({
-        //         "consumer_key"       : config.consumer.key,
-        //         "consumer_secret"    : config.consumer.secret,
-        //         "access_token_key"   : config.access_token.key,
-        //         "access_token_secret": config.access_token.secret
-        //     });
-        // }
+        if (!config.access_token.key || !config.access_token.secret) {
+            process.stdout.write("You are not logged in!\nTry: zoi init\n");
+        }
+        else {
+            var client = new Twitter({
+                "consumer_key"       : config.consumer.key,
+                "consumer_secret"    : config.consumer.secret,
+                "access_token_key"   : config.access_token.key,
+                "access_token_secret": config.access_token.secret
+            });
+            client.stream(
+                "user",
+                {},
+                function (stream) {
+                    stream.on("data", function (data) {
+                        if (!data.retweeted_status && data.text && data.text.match(/^Zoi/)
+                            && data.user && data.user.id_str !== config.user_id) {
+                            zoi(client);
+                        }
+                    });
+                }
+            );
+        }
     });
 
 program.parse(process.argv);
@@ -140,14 +157,40 @@ if (defaultMode) {
             "access_token_key"   : config.access_token.key,
             "access_token_secret": config.access_token.secret
         });
-        client.post(
-            "statuses/update",
-            { "status": "Zoi " + Math.random().toString() },
-            function (error, params, response) {
-                if (error) {
+        zoi(client);
+    }
+}
+
+function zoi(client, message) {
+    if (!message) {
+        message = "Zoi";
+    }
+    client.post(
+        "statuses/update",
+        { "status": message },
+        function (error, params, response) {
+            if (error) {
+                if (error.data) {
+                    try {
+                        var errorData = JSON.parse(error.data);
+                        if (errorData.errors) {
+                            process.stdout.write("Error:\n");
+                            errorData.errors.forEach(function (error) {
+                                process.stdout.write("  " + error.code.toString() + ": " + error.message + "\n");
+                            });
+                        }
+                        else {
+                            process.stdout.write("Some error occurred.\n");
+                        }
+                    }
+                    catch (parseError) {
+                        process.stdout.write("Some error occurred.\n");
+                    }
+                }
+                else {
                     process.stdout.write(String(error) + "\n");
                 }
             }
-        );
-    }
+        }
+    );
 }
