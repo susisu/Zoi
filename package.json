@@ -2,16 +2,18 @@
   "name": "zoi",
   "version": "0.0.1",
   "description": "Zoi",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "directories": {
+    "bin": "./bin"
+  },
+  "bin": {
+    "zoi": "./bin/zoi"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/susisu/Zoi.git"
   },
   "keywords": [
-    "zoi"
+    "zoi", "joke"
   ],
   "author": "Susisu <susisu2413@yahoo.co.jp> (https://github.com/susisu)",
   "license": "MIT",
