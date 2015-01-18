@@ -56,11 +56,11 @@ var defaultMode = true;
 
 program.version(packageInfo.version, "-v, --version");
 
-program.option("-t, --text <text>", "change text to tweet");
+program.option("-t, --text <text>", "change tweet text");
 
 program
     .command("init")
-    .description("get request token")
+    .description("initialize oauth tokens")
     .action(function () {
         defaultMode = false;
 
@@ -93,7 +93,7 @@ program
 
 program
     .command("login <pin>")
-    .description("get access token")
+    .description("log in to an account")
     .action(function (pin) {
         defaultMode = false;
 
@@ -130,7 +130,7 @@ program
 
 program
     .command("watch [expression]")
-    .description("watch timeline")
+    .description("watch timeline to tweet automatically")
     .action(function (expression) {
         defaultMode = false;
 
