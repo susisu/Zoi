@@ -85,7 +85,7 @@ program
                     var url = client.options.authorize_url + "?oauth_token=" + requestTokenKey;
                     fs.writeFileSync(HOME + CONFIG_FILE_NAME, JSON.stringify(config));
                     process.stdout.write("Open: " + url + "\n"
-                        + "and allow Zoi access your account: zoi login <pin>\n");
+                        + "and allow Zoi access to your account: zoi login <pin>\n");
                 }
             }
         );
