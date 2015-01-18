@@ -13,7 +13,7 @@ var packageInfo = require("../package.json");
 
 process.title = "zoi"
 
-var HOME = process.env.HOME + "/";
+var HOME = (process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE || "") + "/";
 var DEFAULT_CONFIG = {
     "consumer": {
         "key"   : "azsgLpxXji3HFGsnxc3JLBoA8",
