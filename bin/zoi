@@ -72,7 +72,12 @@ program
             { "oauth_callback": "oob" },
             function (error, requestTokenKey, requestTokenSecret, results) {
                 if (error) {
-                    process.stdout.write(String(error) + "\n");
+                    if (error.data) {
+                        process.stdout.write(error.data + "\n");
+                    }
+                    else {
+                        process.stdout.write(String(error) + "\n");
+                    }
                 }
                 else {
                     config.request_token.key = requestTokenKey;
@@ -102,7 +107,13 @@ program
             pin,
             function (error, accessTokenKey, accessTokenSecret, results) {
                 if (error) {
-                    process.stdout.write(String(error) + "\n");
+                    if (error.data) {
+                        process.stdout.write(error.data + "\n");
+                    }
+                    else {
+                        process.stdout.write(String(error) + "\n");
+                    }
+                    process.stdout.write("Try: zoi init\n");
                 }
                 else {
                     config.access_token.key = accessTokenKey;
