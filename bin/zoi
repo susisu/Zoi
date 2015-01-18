@@ -31,6 +31,7 @@ var DEFAULT_CONFIG = {
     "screen_name": null
 };
 var CONFIG_FILE_NAME = ".zoiconfig";
+var DEFAULT_TEXT = "Zoi";
 
 var config;
 if (!fs.existsSync(HOME + CONFIG_FILE_NAME)) {
@@ -53,6 +54,8 @@ var program = require("commander");
 var defaultMode = true;
 
 program.version(packageInfo.version, "-v, --version");
+
+program.option("-t, --text <text>", "change text to tweet");
 
 program
     .command("init")
@@ -163,7 +166,7 @@ if (defaultMode) {
 
 function zoi(client, message) {
     if (!message) {
-        message = "Zoi";
+        message = program.text ? program.text : DEFAULT_TEXT;
     }
     client.post(
         "statuses/update",
@@ -190,6 +193,9 @@ function zoi(client, message) {
                 else {
                     process.stdout.write(String(error) + "\n");
                 }
+            }
+            else {
+                process.stdout.write(message + "!\n");
             }
         }
     );
