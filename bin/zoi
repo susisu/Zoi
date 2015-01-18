@@ -32,6 +32,7 @@ var DEFAULT_CONFIG = {
 };
 var CONFIG_FILE_NAME = ".zoiconfig";
 var DEFAULT_TEXT = "Zoi";
+var DEFAULT_EXPRESSION = "^Zoi";
 
 var config;
 if (!fs.existsSync(HOME + CONFIG_FILE_NAME)) {
@@ -117,11 +118,15 @@ program
     });
 
 program
-    .command("watch")
-    .description("watch timeline to respond to Zoi")
-    .action(function (env, options) {
+    .command("watch [expression]")
+    .description("watch timeline")
+    .action(function (expression) {
         defaultMode = false;
 
+        if (!expression) {
+            expression = DEFAULT_EXPRESSION;
+        }
+        var re = new RegExp(expression);
         if (!config.access_token.key || !config.access_token.secret) {
             process.stdout.write("You are not logged in!\nTry: zoi init\n");
         }
@@ -137,7 +142,7 @@ program
                 {},
                 function (stream) {
                     stream.on("data", function (data) {
-                        if (!data.retweeted_status && data.text && data.text.match(/^Zoi/)
+                        if (!data.retweeted_status && data.text && re.test(data.text)
                             && data.user && data.user.id_str !== config.user_id) {
                             zoi(client);
                         }
