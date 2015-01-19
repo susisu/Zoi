@@ -172,10 +172,12 @@ program
                             }
                         });
 
-                        stream.on("end", function () {
+                        stream.on("end", function (response) {
                             connected = false;
-                            process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] disconnected\n");
-                            setTimeout(connet, Math.min(delay * 2, RECONN_MAX_DELAY));
+                            process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] disconnected: "
+                                + response.statusCode + "\n");
+                            setTimeout(connect, Math.min(delay, RECONN_MAX_DELAY));
+                            delay *= 2;
                         });
 
                         stream.on("error", function (error) {
