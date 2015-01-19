@@ -33,6 +33,8 @@ var DEFAULT_CONFIG = {
 var CONFIG_FILE_NAME = ".zoiconfig";
 var DEFAULT_TEXT = "Zoi";
 var DEFAULT_EXPRESSION = "^Zoi";
+var RECONN_INIT_DELAY = 1000;
+var RECONN_MAX_DELAY = 2400000;
 
 var config;
 if (!fs.existsSync(HOME + CONFIG_FILE_NAME)) {
@@ -148,18 +150,41 @@ program
                 "access_token_key"   : config.access_token.key,
                 "access_token_secret": config.access_token.secret
             });
-            client.stream(
-                "user",
-                {},
-                function (stream) {
-                    stream.on("data", function (data) {
-                        if (!data.retweeted_status && data.text && re.test(data.text)
-                            && data.user && data.user.id_str !== config.user_id) {
-                            zoi(client);
-                        }
-                    });
-                }
-            );
+            var connected = false;
+            var delay = RECONN_INIT_DELAY;
+            connect();
+            function connect() {
+                client.stream(
+                    "user",
+                    {},
+                    function (stream) {
+                        stream.on("data", function (data) {
+                            if (!connected) {
+                                connected = true;
+                                delay = RECONN_INIT_DELAY;
+                                process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] connected\n");
+                            }
+                            if (!data.retweeted_status && data.text && re.test(data.text)
+                                && data.user && data.user.id_str !== config.user_id) {
+                                process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] @"
+                                    + data.user.screen_name + ": " + data.text + "\n");
+                                zoi(client);
+                            }
+                        });
+
+                        stream.on("end", function () {
+                            connected = false;
+                            process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] disconnected\n");
+                            setTimeout(connet, Math.min(delay * 2, RECONN_MAX_DELAY));
+                        });
+
+                        stream.on("error", function (error) {
+                            process.stdout.write(String(error) + "\n");
+                            stream.destroy();
+                        });
+                    }
+                );
+            }
         }
     });
 
@@ -211,7 +236,7 @@ function zoi(client, message) {
                 }
             }
             else {
-                process.stdout.write(message + "!\n");
+                process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] tweeted: " + message + "\n");
             }
         }
     );
