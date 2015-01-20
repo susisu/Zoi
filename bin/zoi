@@ -162,7 +162,7 @@ program
                             if (!connected) {
                                 connected = true;
                                 delay = RECONN_INIT_DELAY;
-                                process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] connected\n");
+                                process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] Connected\n");
                             }
                             if (!data.retweeted_status && data.text && re.test(data.text)
                                 && data.user && data.user.id_str !== config.user_id) {
@@ -174,7 +174,7 @@ program
 
                         stream.on("end", function (response) {
                             connected = false;
-                            process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] disconnected: "
+                            process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] Disconnected: "
                                 + response.statusCode + "\n");
                             setTimeout(connect, delay);
                             delay *= Math.min(delay * 2, RECONN_MAX_DELAY);
@@ -220,25 +220,25 @@ function zoi(client, message) {
                     try {
                         var errorData = JSON.parse(error.data);
                         if (errorData.errors) {
-                            process.stdout.write("Error:\n");
+                            process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] Error:\n");
                             errorData.errors.forEach(function (error) {
                                 process.stdout.write("  " + error.code.toString() + ": " + error.message + "\n");
                             });
                         }
                         else {
-                            process.stdout.write("Some error occurred.\n");
+                            process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] Error\n");
                         }
                     }
                     catch (parseError) {
-                        process.stdout.write("Some error occurred.\n");
+                        process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] Error\n");
                     }
                 }
                 else {
-                    process.stdout.write(String(error) + "\n");
+                    process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] " + String(error) + "\n");
                 }
             }
             else {
-                process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] tweeted: " + message + "\n");
+                process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] Tweeted: " + message + "\n");
             }
         }
     );
