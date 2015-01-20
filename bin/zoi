@@ -59,6 +59,7 @@ var defaultMode = true;
 program.version(packageInfo.version, "-v, --version");
 
 program.option("-t, --text <text>", "change tweet text");
+program.option("-s, --suffix <suffix>", "add suffix on to duplicate tweet (do NOT specify space characters!)");
 
 program
     .command("init")
@@ -223,6 +224,9 @@ function zoi(client, message) {
                             process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] Error:\n");
                             errorData.errors.forEach(function (error) {
                                 process.stdout.write("  " + error.code.toString() + ": " + error.message + "\n");
+                                if (error.code === 187 && program.suffix && program.suffix.length > 0) {
+                                    zoi(client, message + program.suffix);
+                                }
                             });
                         }
                         else {
