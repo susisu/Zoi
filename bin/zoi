@@ -167,7 +167,7 @@ program
                         var timeout = setTimeout(destroy, CONN_RESET_TIME);
                         stream.request.setTimeout(CONN_KEEP_TIME, destroy);
 
-                        stream.on("data", function (data) {
+                        function onData(data) {
                             if (!connected) {
                                 connected = true;
                                 delay = RECONN_INIT_DELAY;
@@ -179,18 +179,21 @@ program
                                     + data.user.screen_name + ": " + data.text + "\n");
                                 zoi(client);
                             }
-                        });
+                        }
 
-                        stream.on("end", function (response) {
+                        function onEnd(response) {
                             connected = false;
                             clearTimeout(timeout);
+                            stream.removeListener("data", onData);
+                            stream.removeListener("end", onEnd);
+                            stream.removeListener("error", onError);
                             process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] Disconnected: "
                                 + response.statusCode + "\n");
                             setTimeout(connect, delay);
                             delay = Math.min(delay * 2, RECONN_MAX_DELAY);
-                        });
+                        }
 
-                        stream.on("error", function (error) {
+                        function onError(error) {
                             process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] " + String(error) + "\n");
                             if (error instanceof SyntaxError) {
                                 stream.destroy();
@@ -198,10 +201,17 @@ program
                             else {
                                 connected = false;
                                 clearTimeout(timeout);
+                                stream.removeListener("data", onData);
+                                stream.removeListener("end", onEnd);
+                                stream.removeListener("error", onError);
                                 setTimeout(connect, delay);
                                 delay = Math.min(delay * 2, RECONN_MAX_DELAY);
                             }
-                        });
+                        }
+
+                        stream.on("data", onData);
+                        stream.on("end", onEnd);
+                        stream.on("error", onError);
                     }
                 );
             }
