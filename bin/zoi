@@ -35,6 +35,8 @@ var DEFAULT_TEXT = "Zoi";
 var DEFAULT_EXPRESSION = "^Zoi";
 var RECONN_INIT_DELAY = 1000;
 var RECONN_MAX_DELAY = 2400000;
+var CONN_KEEP_TIME = 90000;
+var CONN_RESET_TIME = 3600000;
 
 var config;
 if (!fs.existsSync(HOME + CONFIG_FILE_NAME)) {
@@ -159,6 +161,12 @@ program
                     "user",
                     {},
                     function (stream) {
+                        function destroy() {
+                            stream.destroy();
+                        }
+                        var timeout = setTimeout(destroy, CONN_RESET_TIME);
+                        stream.request.setTimeout(CONN_KEEP_TIME, destroy);
+
                         stream.on("data", function (data) {
                             if (!connected) {
                                 connected = true;
@@ -175,6 +183,7 @@ program
 
                         stream.on("end", function (response) {
                             connected = false;
+                            clearTimeout(timeout);
                             process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] Disconnected: "
                                 + response.statusCode + "\n");
                             setTimeout(connect, delay);
@@ -182,8 +191,16 @@ program
                         });
 
                         stream.on("error", function (error) {
-                            process.stdout.write(String(error) + "\n");
-                            stream.destroy();
+                            process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] " + String(error) + "\n");
+                            if (error instanceof SyntaxError) {
+                                stream.destroy();
+                            }
+                            else {
+                                connected = false;
+                                clearTimeout(timeout);
+                                setTimeout(connect, delay);
+                                delay = Math.min(delay * 2, RECONN_MAX_DELAY);
+                            }
                         });
                     }
                 );
