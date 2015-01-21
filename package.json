@@ -23,6 +23,6 @@
   "homepage": "https://github.com/susisu/Zoi",
   "dependencies": {
     "commander": "^2.6.0",
-    "twitter": "^1.0.3"
+    "twitter": "git://github.com/susisu/node-twitter.git"
   }
 }
