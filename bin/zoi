@@ -178,7 +178,7 @@ program
                             process.stdout.write("[" + (new Date()).toLocaleTimeString() + "] Disconnected: "
                                 + response.statusCode + "\n");
                             setTimeout(connect, delay);
-                            delay *= Math.min(delay * 2, RECONN_MAX_DELAY);
+                            delay = Math.min(delay * 2, RECONN_MAX_DELAY);
                         });
 
                         stream.on("error", function (error) {
